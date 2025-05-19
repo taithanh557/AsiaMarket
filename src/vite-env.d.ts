@@ -1,0 +1,2 @@
+/// <reference types="vite/client" />
+REACT_APP_OPENAI_API_KEY=your-openai-api-key
