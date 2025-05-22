@@ -7,6 +7,8 @@ const http = require("http");
 const socketIO = require("socket.io"); // nếu dùng io
 require("dotenv").config();
 const routeUser = require("./src/routers/routeUser");
+const routeCategory = require("./src/routers/routeCategory");
+const routeProduct = require("./src/routers/routeProduct");
 const errorHandler = require("./src/middlewares/errorHandle");
 // Cấu hình database + frontend
 const app = express();
@@ -37,6 +39,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api", routeUser);
+app.use("/api", routeCategory);
+app.use("/api", routeProduct);
 
 // Error handling middleware - should be added after all routes
 app.use(errorHandler);
