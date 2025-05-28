@@ -31,7 +31,7 @@ const registerUser = async (req, res) => {
       .json({ success: false, error: "Số điện thoại không hợp lệ" });
   }
   //kiểm tra vai trò
-  if (!["admin", "buyer"].includes(role)) {
+  if (!["admin", "buyer", "seller"].includes(role)) {
     return res
       .status(400)
       .json({ success: false, error: "Vai trò không hợp lệ" });
@@ -375,11 +375,83 @@ const changePassword = async (req, res) => {
     if (conn) conn.release();
   }
 };
-
+// change active
+const changeActive = async (req, res) => {
+  const id = req.params.id;
+  const { isActive } = req.body;
+  // Kiểm tra đầu vào
+  if (typeof isActive === "undefined") {
+    return res.status(400).json({
+      success: false,
+      error: "Không tim thấy trạng thái active",
+    });
+  }
+  let conn;
+  try {
+    // Kiểm tra người dùng có tồn tại không
+    const [userRows] = await conn.query("SELECT id FROM Users WHERE id = ?", [
+      id,
+    ]);
+    if (userRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Người dùng không tồn tại",
+      });
+    }
+    // Cập nhật trạng thái hoạt động
+    await conn.query("UPDATE Users SET is_active = ? WHERE id = ?", [
+      isActive ? 1 : 0,
+      id,
+    ]);
+    return res.status(200).json({
+      success: true,
+      message: `Đã ${isActive ? "mở khoá" : "khoá"} tài khoản`,
+    });
+  } catch (error) {
+    console.error("Change active status error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Lỗi máy chủ, vui lòng thử lại sau",
+    });
+  } finally {
+    if (conn) conn.release();
+  }
+};
+// delete user
+const deleteUser = async (req, res) => {
+  const id = req.params.id;
+  let conn;
+  try {
+    //kiểm tra người dùng có tồn tại không
+    const [userRows] = await conn.query("SELECT * FROM Users WHERE id = ?", [
+      id,
+    ]);
+    if (userRows.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "nguời dùng không tồn tại" });
+    }
+    await conn.query("DELETE Users WHERE id = ?", [id]);
+    return res.status(200).json({
+      success: true,
+      message: "Xoá người dùng thành công",
+    });
+  } catch (error) {
+    console.error("Change active status error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Lỗi máy chủ, vui lòng thử lại sau",
+    });
+  } finally {
+    if (conn) conn.release();
+  }
+};
 module.exports = {
   registerUser,
   loginUser,
   forgotPassword,
   updateProfile,
   changePassword,
+  changeActive,
+  deleteUser,
 };
